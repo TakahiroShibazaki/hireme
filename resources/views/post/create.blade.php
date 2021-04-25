@@ -10,15 +10,29 @@
             <form id="form" action={{ route('postStore') }} method="post" enctype="multipart/form-data">
             @csrf
                 <div class="container">
+                    {{-- エラー文表示 --}}
+                    <div class="row">
+                        <div class="col-md-12 alert-danger" style="padding-bottom: 1rem">
+                            @if (count($errors) > 0)
+                                {{-- TODO:エラー時の画像の初期値を設定 --}}
+                                <ul>
+                                    <li>画像をもう一度画像を選択してください</li>
+                                    @foreach ($errors->all() as $error)
+                                        <li>{{ $error }}</li>
+                                    @endforeach
+                                </ul>
+                            @endif
+                        </div>
+                    </div>
                     <div class="row original-border-around-with-padding">
                         <div class="col-md-6">
-                            <!-- 写真投稿 -->
+                            {{-- 写真投稿 --}}
                             <div class="row">
                                 <div class="col-md-12" style="text-align: center">
                                     <label for="photo">
                                         <span id="file_img_0" class="file_img">
                                             <div id="up-button" style="opacity: 0.7;">
-                                                <img class="img-fluid" style="width:100%" src="{{asset('storage/materials/stationery.jpeg')}}">
+                                                <img class="img-fluid" style="width:100%" src="{{ asset('storage/materials/stationery.jpeg') }}">
                                             </div>
                                         </span>
                                         <img id="preview_0" src="data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==" style="max-width: 100%">
@@ -28,43 +42,34 @@
                                 </div>
                             </div>
                         </div>
-
                         <div class="col-md-6">
-                            <!-- 書いた文字入力欄 -->
+                            {{-- 書いた文字入力欄 --}}
                             <div class="form-group">
                                 <label for="word" class="original-subbar">
                                 <span><img src="{{asset('storage/materials/maru_fude_icon.png')}}" alt="" style="width: 1rem; height: 1rem;"></span>
                                     書いた文字
                                 </label>
-                                <input type="text" class='form-control' id="word" name="word" placeholder="どんな文字を書きましたか?">
+                                <input type="text" class='form-control' id="word" name="word" value="{{ old('word') }}" maxlength="255" placeholder="どんな文字を書きましたか?">
                             </div>
-
                             <br>
-
-                            <!-- コメント入力欄 -->
+                            {{-- コメント入力欄 --}}
                             <div class="form-group">
                                 <label for="comment" class="original-subbar">
                                     <i class="fas fa-comment-dots"></i>
                                     <span>コメント</span>
-
                                     <span style="float: right;">
                                         <button type="button" class="btn-color" data-toggle="tooltip" data-placement="right" title="「#」に続けて好きなキーワードを入力するとタグを付けられます。&#10;複数のタグを付けたい場合は間にスペースを入力して下さい。">
                                             <i class="far fa-question-circle"></i>
                                         </button>
                                     </span>
-
                                 </label>
-                                <!-- <input type="text" class='form-control' id="comment" name="comment" placeholder="コメント"> -->
-                                <textarea class="form-control" id="comment" name="comment" placeholder="「#」に続けて好きなキーワードを入力するとタグを付けられます。&#10;複数のタグを付けたい場合は間にスペースを入力して下さい。" type="text" rows="6" maxlength="255"></textarea>
-                                <!-- <div>現在の文字数表示</div> -->
+                                <textarea class="form-control" id="comment" name="comment" value="{{ old('comment') }}" placeholder="「#」に続けて好きなキーワードを入力するとタグを付けられます。&#10;複数のタグを付けたい場合は間にスペースを入力して下さい。" type="text" rows="6" maxlength="255">{{ old('comment') }}</textarea>
                                 <div><span id="showTextLength">0</span>/255文字です。<span class ="text-length-alert">255文字以内で入力して下さい。</span></div>
                             </div>
                         </div>
-
-                        <!-- よく使われるタグ表示（現状は全部HTMLで表示中） -->
+                        {{-- よく使われるタグ表示 TODO:DBからよく使われるタグ順に取得し表示 --}}
                         <div class="col-md-12 often-tags">
                             <h2 style="margin-bottom: 1rem;">#よく使われるタグ</h2>
-
                             @php
                                 $tags = [
                                         '習字',
@@ -93,15 +98,14 @@
                             @endphp
                             @foreach ($tags as $tag)
                                 <span class="original-tag-item" style="display: inline-block;>
-                                    <button class="tagBtn reset-button" type="button" id="{{$tag}}" value="{{$tag}}" onclick="tagBtnClk(this.id)">
-                                        #{{$tag}}<i class="fa fa-chevron-right"></i>
+                                    <button class="tagBtn reset-button" type="button" id="{{ $tag }}" value="{{ $tag }}" onclick="tagBtnClk(this.id)">
+                                        #{{ $tag }}<i class="fa fa-chevron-right"></i>
                                     </button>
                                 </span>
                             @endforeach
                         </div>
                     </div>
                 </div>
-
                 <div class="button-flex">
                     <div class="button">
                         <div>
@@ -110,7 +114,6 @@
                     </div>
                 </div>
             </form>
-
         </div>
         <div class="col-md-2">
             <div class="container">
@@ -211,9 +214,8 @@
 <script>
 
     /**
-     * preview機能
+     * 画像preview機能
      */
-
     function previewImage(obj, formNum)
     {
         var fileReader = new FileReader();
@@ -224,12 +226,17 @@
         document.getElementById('file_img_' + formNum).style.display = "none";
     }
 
+    /**
+     * タグクリックでタグ文字列追加
+     */
     function tagBtnClk(tagName) {
         var tag = tagName;
-        console.log(tagName);
         document.getElementById('comment').value += " " + "#" + tagName;
     }
 
+    /**
+     * commentの文字数カウント
+     */
     var textLength = document.getElementById('comment');
     textLength.addEventListener("keyup", function() {
         document.getElementById('showTextLength').textContent = textLength.value.length;
@@ -240,7 +247,9 @@
         }
     })
 
-    // tooltipの初期化
+    /**
+     * tooltipの初期化
+     */
     $(function () {
         $('[data-toggle="tooltip"]').tooltip()
     })

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Http\Requests\PostStoreRequest;
 use App\Models\ImageFactory;
 use App\Models\Post;
 use App\Models\Like;
@@ -105,7 +106,7 @@ class PostController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(Request $request)
+    public function store(PostStoreRequest $request)
     {
         /**
          * DBへ格納
@@ -121,7 +122,7 @@ class PostController extends Controller
         $post->id = $id;
         $post->user_id = $user->id;
         $post->photo = $imagePath;
-        
+
         if (isNotNullOrBlank($request->comment)) {
             /**
              * タグ機能
@@ -150,7 +151,7 @@ class PostController extends Controller
             $post->word = $request->word;
         }
         $post->save();
-        
+
         return redirect()->route('postShow', ['id' => $id]);
     }
 
@@ -192,7 +193,7 @@ class PostController extends Controller
          * コメント取得
          */
         $comments = Comment::where('post_id', $post_id)->get();
-        
+
 
         /**
          * お気に入り機能
@@ -251,7 +252,7 @@ class PostController extends Controller
 
         return view('post.show', [
             'post' => $post,
-            'likeFlag' => $likeFlag, 
+            'likeFlag' => $likeFlag,
             'like_count' => $like_count,
             'likeUsers' => $likeUsers,
             'comments' => $comments,
@@ -302,7 +303,7 @@ class PostController extends Controller
      * 人気順一覧
      */
     public function popular(Request $request, $nextPage) {
-        
+
         /**
          * 人気順(1ヶ月以内)
          */
@@ -372,12 +373,12 @@ class PostController extends Controller
         /**
          * 書かれた言葉から検索
          */
-        
+
         // １ページ当たりの取得件数
         $perPage = 2;
         // 現在のページ(遷移後ページ視点)
         $currentPage = 0;
-        
+
         $query = Post::query();
         foreach ($words as $word) {
             $query->orwhere('word', 'LIKE', '%'.$word.'%');
@@ -395,16 +396,16 @@ class PostController extends Controller
         /**
          * タグ取得
          */
-        for ($i=0; $i < count($searchedWordResult[1]); $i++) { 
+        for ($i=0; $i < count($searchedWordResult[1]); $i++) {
             $searchedWordResult[1][$i]['tags'] = Tag::where('post_id', $searchedWordResult[1][$i]['id'])->get();
         }
         /**
          * 総いいね数をカウント
          */
-        for ($i=0; $i < count($searchedWordResult[1]); $i++) { 
+        for ($i=0; $i < count($searchedWordResult[1]); $i++) {
             $searchedWordResult[1][$i]['totalLikeNum'] = Like::where('post_id', $searchedWordResult[1][$i]['id'])->count();
         }
-        
+
         /**
          * いいね判定用フラグ
          */
@@ -422,7 +423,7 @@ class PostController extends Controller
                 }
             }
         }
-        
+
         /**
          * コメントから検索
          */
@@ -437,7 +438,7 @@ class PostController extends Controller
         } else {
             $currentPage = 0;
         }
-        
+
         $query = Post::query();
         foreach ($words as $word) {
             $query->orwhere('comment', 'LIKE', '%'.$word.'%');
@@ -454,16 +455,16 @@ class PostController extends Controller
         /**
          * タグ取得
          */
-        for ($i=0; $i < count($searchedCommentResult[1]); $i++) { 
+        for ($i=0; $i < count($searchedCommentResult[1]); $i++) {
             $searchedCommentResult[1][$i]['tags'] = Tag::where('post_id', $searchedCommentResult[1][$i]['id'])->get();
         }
         /**
          * 総いいね数をカウント
          */
-        for ($i=0; $i < count($searchedCommentResult[1]); $i++) { 
+        for ($i=0; $i < count($searchedCommentResult[1]); $i++) {
             $searchedCommentResult[1][$i]['totalLikeNum'] = Like::where('post_id', $searchedCommentResult[1][$i]['id'])->count();
         }
-        
+
         /**
          * いいね判定用フラグ
          */
@@ -493,7 +494,7 @@ class PostController extends Controller
      * 書かれた言葉から検索結果
      */
     public function searchWord(Request $request, $searchWords, $nextPage) {
-        
+
         // 未入力だったらreturn
         if (!isNotNullOrBlank($searchWords)) {
             return back();
@@ -503,21 +504,21 @@ class PostController extends Controller
 
         // 1ページ当たりの取得件数
         $perPage = 2;
-        
+
         if (isNotNullOrBlank($nextPage)) {
             $currentPage = (int)$nextPage;
         } else {
             $currentPage = 0;
         }
-        
+
         $query = Post::query();
         foreach ($words as $word) {
             if (isNotNullOrBlank($word)) {
                 $query->orWhere('word', 'LIKE', '%'.$word.'%');
             }
         }
-        
-        
+
+
         $searchedWordResult[0]['searchWords'] = $searchWords;
         $searchedWordResult[0]['total'] = $query->count();
         $searchedWordResult[0]['perPage'] = $perPage;
@@ -532,17 +533,17 @@ class PostController extends Controller
         /**
          * タグ取得
          */
-        for ($i=0; $i < count($searchedWordResult[1]); $i++) { 
+        for ($i=0; $i < count($searchedWordResult[1]); $i++) {
             $searchedWordResult[1][$i]['tags'] = Tag::where('post_id', $searchedWordResult[1][$i]['id'])->get();
         }
 
         /**
          * 総いいね数をカウント
          */
-        for ($i=0; $i < count($searchedWordResult[1]); $i++) { 
+        for ($i=0; $i < count($searchedWordResult[1]); $i++) {
             $searchedWordResult[1][$i]['totalLikeNum'] = Like::where('post_id', $searchedWordResult[1][$i]['id'])->count();
         }
-        
+
         /**
          * いいね判定用フラグ
          */
@@ -560,7 +561,7 @@ class PostController extends Controller
                 }
             }
         }
-        
+
         return view('post.search-word-result', [
             'searchWords' => $searchWords,
             'searchedWordResult' => $searchedWordResult,
@@ -571,30 +572,30 @@ class PostController extends Controller
      * コメントから検索結果
      */
     public function searchComment(Request $request, $searchWords, $nextPage) {
-        
+
         // 未入力だったらreturn
         if (!isNotNullOrBlank($searchWords)) {
             return back();
         }
         $searchWords = str_replace('　', ' ', $searchWords);
         $words = explode(' ', $searchWords);
-        
+
         // 1ページ当たりの取得件数
         $perPage = 2;
-        
+
         if (isNotNullOrBlank($nextPage)) {
             $currentPage = (int)$nextPage;
         } else {
             $currentPage = 0;
         }
-        
+
         $query = Post::query();
         foreach ($words as $word) {
             if (isNotNullOrBlank($word)) {
                 $query->orWhere('comment', 'LIKE', '%'.$word.'%');
             }
         }
-        
+
         $searchedCommentResult[0]['searchWords'] = $searchWords;
         $searchedCommentResult[0]['total'] = $query->count();
         $searchedCommentResult[0]['perPage'] = $perPage;
@@ -605,18 +606,18 @@ class PostController extends Controller
             $searchedCommentResult[0]['lastPage'] = 1;
         }
         $searchedCommentResult[] = $query->offset($searchedCommentResult[0]['perPage'] * $searchedCommentResult[0]['currentPage'])->limit($perPage)->get();
-        
+
         /**
          * タグ取得
          */
-        for ($i=0; $i < count($searchedCommentResult[1]); $i++) { 
+        for ($i=0; $i < count($searchedCommentResult[1]); $i++) {
             $searchedCommentResult[1][$i]['tags'] = Tag::where('post_id', $searchedCommentResult[1][$i]['id'])->get();
         }
 
         /**
          * 総いいね数をカウント
          */
-        for ($i=0; $i < count($searchedCommentResult[1]); $i++) { 
+        for ($i=0; $i < count($searchedCommentResult[1]); $i++) {
             $searchedCommentResult[1][$i]['totalLikeNum'] = Like::where('post_id', $searchedCommentResult[1][$i]['id'])->count();
         }
 
@@ -637,7 +638,7 @@ class PostController extends Controller
                 }
             }
         }
-        
+
         return view('post.search-comment-result', [
             'searchWords' => $searchWords,
             'searchedCommentResult' => $searchedCommentResult,
@@ -676,7 +677,7 @@ class PostController extends Controller
         foreach ($users[1] as $user) {
             $user['posts'] = Post::where('user_id', $user['id'])->take(4)->get();
         }
-        
+
         /**
          * フォローフラグを立てる
          */
